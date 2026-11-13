@@ -4,7 +4,7 @@
 
 ## 在线预览
 
-- **在线演示（国内直连）**：<https://vue-frontend-showcase-dpz0mnugdp6.edgeone.dev>
+- **在线演示（国内直连）**：<https://vue-frontend-showcase.edgeone.dev>
 - **在线演示（海外线路）**：<https://vue-frontend-showcase.vercel.app>
 - **源码**：<https://github.com/wanghui0520/vue-frontend-showcase>
 

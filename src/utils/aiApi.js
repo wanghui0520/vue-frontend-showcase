@@ -106,15 +106,18 @@ export function chatStream(data, onDelta, onComplete, onError) {
   streamRequest(
     '/api/chat/stream',
     data,
-    ({ event, data: chunk }) => {
+    ({ event, data: payload }) => {
       if (event === 'error') {
-        onError?.(new Error(typeof chunk === 'string' ? chunk : 'AI 服务错误'))
+        onError?.(new Error(typeof payload === 'string' ? payload : 'AI 服务错误'))
         return
       }
       if (event === 'end') {
         finish({ event: 'end' })
         return
       }
+
+      // 兼容两种数据形态：服务端包裹 { chunk: {...} }，或直接就是 chunk 本体
+      const chunk = payload && typeof payload === 'object' && 'chunk' in payload ? payload.chunk : payload
 
       // 1) 思考过程：有效的工具调用事件
       if (!isNoiseTool(chunk)) {

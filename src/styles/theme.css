@@ -1,0 +1,100 @@
+/* ============================================================
+   设计系统：CSS 变量统一色板，亮 / 暗主题通过 html.dark 切换
+   ============================================================ */
+
+:root {
+  /* 品牌色 */
+  --brand: #2f5bff;
+  --brand-weak: rgba(47, 91, 255, 0.1);
+  --brand-gradient: linear-gradient(135deg, #2f5bff 0%, #7b3dff 100%);
+
+  /* 语义色 */
+  --ok: #10b981;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --info: #64748b;
+
+  /* 表面 / 文本 */
+  --bg: #f4f6fb;
+  --bg-sidebar: #101528;
+  --surface: #ffffff;
+  --surface-2: #f8f9fd;
+  --border: #e5e9f2;
+  --text-1: #1b2233;
+  --text-2: #5a6478;
+  --text-3: #9096a8;
+  --shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 8px 24px rgba(16, 24, 40, 0.05);
+  --radius: 10px;
+
+  --sidebar-text: rgba(255, 255, 255, 0.72);
+  --sidebar-text-active: #ffffff;
+}
+
+html.dark {
+  --brand: #6d8bff;
+  --brand-weak: rgba(109, 139, 255, 0.14);
+
+  --bg: #0d1017;
+  --bg-sidebar: #0a0d14;
+  --surface: #161a24;
+  --surface-2: #1c212e;
+  --border: #262c3a;
+  --text-1: #e6e9f2;
+  --text-2: #a3abc0;
+  --text-3: #6b7288;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.32);
+}
+
+/* ---------- 基础 ---------- */
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text-1);
+  transition: background 0.25s, color 0.25s;
+}
+
+/* ---------- 通用卡片与页面结构 ---------- */
+.page { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+
+.page-title { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+
+.page-desc { color: var(--text-2); font-size: 13px; margin: 0 0 18px; line-height: 1.6; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.card-title { font-size: 14px; font-weight: 600; margin: 0 0 12px; color: var(--text-1); }
+
+/* ---------- 统计卡片 ---------- */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 900px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.stat { padding: 16px; }
+.stat-label { font-size: 12px; color: var(--text-3); }
+.stat-value { font-size: 26px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.stat-delta { font-size: 12px; margin-top: 6px; color: var(--text-2); }
+.stat-delta.up { color: var(--ok); }
+.stat-delta.down { color: var(--danger); }
+
+/* ---------- 空状态 ---------- */
+.empty {
+  text-align: center;
+  color: var(--text-3);
+  padding: 48px 0;
+  font-size: 13px;
+}
+
+/* ---------- 滚动条 ---------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }

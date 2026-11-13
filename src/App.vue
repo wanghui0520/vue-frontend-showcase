@@ -1,48 +1,47 @@
 <template>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">Vue 前端工程能力展示</div>
-      <nav class="tabs">
-        <button v-for="t in tabs" :key="t.key" class="tab" :class="{ active: active === t.key }" @click="active = t.key">
-          {{ t.label }}
-        </button>
-      </nav>
-      <a class="repo" href="https://github.com/wanghui0520/vue-frontend-showcase" target="_blank">GitHub →</a>
-    </header>
+  <!-- 登录门 -->
+  <Login v-if="!loggedIn" @success="loggedIn = true" />
 
-    <main class="content">
-      <KeepAlive>
-        <SseChat v-if="active === 'chat'" />
-        <EditableTable v-else-if="active === 'table'" />
-        <GraphView v-else-if="active === 'graph'" />
-      </KeepAlive>
-    </main>
-  </div>
+  <!-- 主应用 -->
+  <AppShell v-else v-model="active" :menus="menus" @logout="loggedIn = false">
+    <KeepAlive>
+      <Dashboard v-if="active === 'dashboard'" />
+      <SseChat v-else-if="active === 'chat'" />
+      <ExtractWorkbench v-else-if="active === 'extract'" />
+      <AgentFlow v-else-if="active === 'agent'" />
+      <EditableTable v-else-if="active === 'table'" />
+      <GraphView v-else-if="active === 'graph'" />
+    </KeepAlive>
+  </AppShell>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { isLoggedIn } from './auth'
+import { Odometer, ChatDotRound, EditPen, Share, Grid, Connection } from '@element-plus/icons-vue'
+import AppShell from './layout/AppShell.vue'
+import Login from './views/Login.vue'
+import Dashboard from './views/Dashboard.vue'
 import SseChat from './views/SseChat.vue'
+import ExtractWorkbench from './views/ExtractWorkbench.vue'
+import AgentFlow from './views/AgentFlow.vue'
 import EditableTable from './views/EditableTable.vue'
 import GraphView from './views/GraphView.vue'
 
-const tabs = [
-  { key: 'chat', label: '① SSE 流式对话' },
-  { key: 'table', label: '② 可编辑表格 + 字典缓存' },
-  { key: 'graph', label: '③ 关系图谱（AntV G6）' }
-]
-const active = ref('chat')
-</script>
+// 恢复上次选择的主题
+if (localStorage.getItem('showcase_theme') === 'dark') {
+  document.documentElement.classList.add('dark')
+}
 
-<style>
-* { box-sizing: border-box; }
-body { margin: 0; font-family: 'Microsoft YaHei', sans-serif; background: #f4f6fa; color: #222; }
-.app { max-width: 1080px; margin: 0 auto; padding: 16px; }
-.topbar { display: flex; align-items: center; gap: 18px; padding: 10px 4px; }
-.brand { font-size: 17px; font-weight: 700; color: #14315c; }
-.tabs { display: flex; gap: 8px; flex: 1; }
-.tab { border: 1px solid #d7dceb; background: #fff; padding: 7px 14px; border-radius: 18px; cursor: pointer; font-size: 13px; }
-.tab.active { background: #14315c; color: #fff; border-color: #14315c; }
-.repo { font-size: 13px; color: #14315c; }
-.content { margin-top: 8px; }
-</style>
+const loggedIn = ref(isLoggedIn())
+const active = ref('dashboard')
+
+const menus = [
+  { key: 'dashboard', label: '数据面板', icon: Odometer, desc: 'AI 调用量与任务总览' },
+  { key: 'chat', label: 'AI 流式对话', icon: ChatDotRound, desc: 'SSE 流式客户端 + 多协议解析 + CoT 可视化' },
+  { key: 'extract', label: 'AI 数据提取', icon: EditPen, desc: '非结构化文本 → 结构化字段 → 人工兜底 → 导出' },
+  { key: 'agent', label: 'Agent 执行可视化', icon: Share, desc: '思考 / 工具调用 / 重试链路实时呈现' },
+  { key: 'table', label: '可编辑表格', icon: Grid, desc: 'useTable hooks + 字典双层缓存' },
+  { key: 'graph', label: '关系图谱', icon: Connection, desc: 'AntV G6 力导向布局 + 快照导出' }
+]
+</script>

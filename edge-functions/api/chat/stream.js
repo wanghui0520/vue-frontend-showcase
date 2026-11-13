@@ -84,3 +84,6 @@ export async function onRequest(context) {
     headers: { 'Content-Type': 'application/json' }
   })
 }
+
+/* Makers 平台亦支持默认导出形式，两种写法都提供以保证兼容 */
+export default onRequest

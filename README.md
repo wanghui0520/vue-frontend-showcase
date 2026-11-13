@@ -4,7 +4,10 @@
 
 ## 在线预览
 
-> 部署到 Vercel 后，把链接填到这里
+- **在线演示**：<https://vue-frontend-showcase.vercel.app>
+- **源码**：<https://github.com/wanghui0520/vue-frontend-showcase>
+
+> 注：国内网络直连 `vercel.app` 可能超时，可切换网络访问，或优先阅读源码与下方的页面说明。
 
 ## 包含内容
 

@@ -4,11 +4,10 @@
 
 ## 在线预览
 
-- **在线演示（国内直连）**：<https://vue-frontend-showcase.edgeone.dev>
-- **在线演示（海外线路）**：<https://vue-frontend-showcase.vercel.app>
+- **海外线路**：<https://vue-frontend-showcase.vercel.app>
 - **源码**：<https://github.com/wanghui0520/vue-frontend-showcase>
 
-三个页面均可交互：SSE 流式对话支持思考过程展开、随时中断与失败重试；可编辑表格支持行内编辑与校验；关系图谱支持拖拽、缩放与快照导出。
+> 注：EdgeOne（腾讯）部署版需登录后访问预览链接（平台合规策略），故对外以 Vercel 与源码为准；本地运行见下文，`npm run dev` 即可体验全部交互。
 
 ## 包含内容
 

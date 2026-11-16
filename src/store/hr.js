@@ -188,9 +188,13 @@ export function approve(c, comment) {
   }
   c.currentNode = NODES[i + 1].key
   c.checked = []
-  if (c.currentNode === 'done') c.status = 'done'
-  else c.status = 'running'
-  c.timeline.push({ node: c.currentNode, action: '待处理', user: NODES[i + 1].owner, time: now() })
+  if (c.currentNode === 'done') {
+    c.status = 'done'
+    c.timeline.push({ node: 'done', action: '入职完成', user: '系统', time: now(), comment: '流程归档，档案已生成' })
+  } else {
+    c.status = 'running'
+    c.timeline.push({ node: c.currentNode, action: '待处理', user: NODES[i + 1].owner, time: now() })
+  }
   persist()
 }
 

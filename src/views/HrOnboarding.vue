@@ -56,9 +56,25 @@
     <div class="card funnel-card">
       <div class="panel-head">
         <h3 class="card-title">流程漏斗 · 各阶段到达人数</h3>
-        <span class="muted">{{ flowName }} · 含已完成与已终止的候选人</span>
+        <div class="funnel-side">
+          <span class="muted">{{ flowName }} · 含已完成与已终止</span>
+          <el-button link size="small" class="funnel-toggle" @click="funnelOpen = !funnelOpen">
+            {{ funnelOpen ? '收起 ▴' : '展开 ▾' }}
+          </el-button>
+        </div>
       </div>
-      <div ref="funnelRef" class="funnel-chart"></div>
+      <div v-show="funnelOpen" class="funnel-rows">
+        <div v-for="(d, i) in funnelData" :key="d.name" class="frow">
+          <span class="fname">{{ d.name }}</span>
+          <div class="fbar-track">
+            <div class="fbar" :class="'fc-' + i" :style="{ width: barWidth(d.value) }"></div>
+          </div>
+          <span class="fcount">{{ d.value }} 人</span>
+          <span class="frate" :class="{ drop: i > 0 && convRate(i) < 100 }">
+            {{ i > 0 ? '↓ ' + convRate(i) + '%' : '入口' }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <div class="hr-layout">
@@ -407,10 +423,9 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, reactive, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { marked } from 'marked'
-import * as echarts from 'echarts'
 import { createStreamClient } from '../utils/requestStream'
 import { goToChatWithPrompt } from '../store/bridge'
 import {
@@ -485,10 +500,7 @@ const readyCount = computed(() => materials.value.filter((m) => m.done).length)
 const allReady = computed(() => materials.value.every((m) => m.done))
 
 /* ---------- 流程漏斗 ---------- */
-const funnelRef = ref(null)
-let funnelChart = null
-
-const FUNNEL_COLORS = ['#2f5bff', '#5a6cf0', '#0ea5a4', '#10b981']
+const funnelOpen = ref(true)
 
 const funnelData = computed(() => {
   const stages = FLOW_STAGES.value
@@ -502,40 +514,13 @@ const funnelData = computed(() => {
   })
 })
 
-function renderFunnel() {
-  if (!funnelRef.value) return
-  if (!funnelChart) funnelChart = echarts.init(funnelRef.value)
-  funnelChart.setOption({
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', formatter: (p) => `${p.name}：${p.value} 人` },
-    series: [{
-      type: 'funnel',
-      left: '10%', right: '10%', top: 8, bottom: 4,
-      minSize: '26%', sort: 'downward', gap: 3,
-      label: {
-        show: true, position: 'inside', color: '#fff', fontSize: 12,
-        formatter: (p) => `${p.name}  ${p.value} 人`
-      },
-      itemStyle: { borderWidth: 0 },
-      data: funnelData.value.map((d, i) => ({
-        ...d,
-        itemStyle: { color: FUNNEL_COLORS[i % FUNNEL_COLORS.length] }
-      }))
-    }]
-  })
+const maxFunnel = computed(() => Math.max(1, ...funnelData.value.map((d) => d.value)))
+const barWidth = (v) => Math.max(6, Math.round((v / maxFunnel.value) * 100)) + '%'
+const convRate = (i) => {
+  const prev = funnelData.value[i - 1]?.value || 0
+  if (!prev) return 100
+  return Math.round((funnelData.value[i].value / prev) * 100)
 }
-function onFunnelResize() { funnelChart?.resize?.() }
-
-onMounted(() => {
-  renderFunnel()
-  window.addEventListener('resize', onFunnelResize)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', onFunnelResize)
-  funnelChart?.dispose?.()
-  funnelChart = null
-})
-watch(funnelData, () => nextTick(renderFunnel), { deep: true })
 
 /* ---------- AI 材料核对 ---------- */
 const reviewing = ref(false)
@@ -875,7 +860,21 @@ function doImport() {
 
 /* ---------- 漏斗 ---------- */
 .funnel-card { margin-top: 14px; }
-.funnel-chart { height: 190px; margin-top: 6px; }
+.funnel-side { display: flex; align-items: center; gap: 8px; }
+.funnel-toggle { padding: 0 2px; }
+
+.funnel-rows { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+.frow { display: grid; grid-template-columns: 88px 1fr 46px 64px; align-items: center; gap: 10px; }
+.fname { font-size: 12px; color: var(--text-2); font-weight: 600; white-space: nowrap; }
+.fbar-track { height: 14px; border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+.fbar { height: 100%; border-radius: 7px; transition: width 0.4s ease; }
+.fc-0 { background: linear-gradient(90deg, #2f5bff, #6d5bff); }
+.fc-1 { background: linear-gradient(90deg, #5a6cf0, #8b5cf6); }
+.fc-2 { background: linear-gradient(90deg, #0ea5a4, #14b8a6); }
+.fc-3 { background: linear-gradient(90deg, #10b981, #34d399); }
+.fcount { font-size: 12px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.frate { font-size: 11px; color: var(--ok); text-align: right; font-variant-numeric: tabular-nums; }
+.frate.drop { color: var(--warn); }
 
 /* ---------- 布局 ---------- */
 .hr-layout { display: grid; grid-template-columns: 268px 1fr; gap: 14px; margin-top: 14px; align-items: start; }

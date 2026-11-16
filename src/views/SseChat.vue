@@ -115,7 +115,7 @@
           <el-input
             v-model="input"
             type="textarea"
-            :autosize="{ minRows: 2, maxRows: 5 }"
+            :autosize="{ minRows: 3, maxRows: 6 }"
             placeholder="输入问题，Enter 发送 / Shift+Enter 换行…"
             @keydown.enter.exact.prevent="send"
           />

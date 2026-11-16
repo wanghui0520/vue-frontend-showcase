@@ -401,11 +401,11 @@ onMounted(() => {
 /* ═══════════ 整体布局 ═══════════ */
 .chat-app {
   display: flex;
-  height: calc(100vh - 200px);
-  min-height: 600px;
+  height: calc(100vh - 60px); /* 精确填满：顶栏 14+14 padding + 32 内容 */
+  min-height: 560px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
 }
 

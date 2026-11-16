@@ -18,6 +18,7 @@
 <script setup>
 import { ref } from 'vue'
 import { isLoggedIn } from './auth'
+import { activePage } from './store/bridge'
 import { Odometer, ChatDotRound, EditPen, Share, Grid, Connection } from '@element-plus/icons-vue'
 import AppShell from './layout/AppShell.vue'
 import Login from './views/Login.vue'
@@ -34,14 +35,14 @@ if (localStorage.getItem('showcase_theme') === 'dark') {
 }
 
 const loggedIn = ref(isLoggedIn())
-const active = ref('dashboard')
+const active = activePage   // 与业务页共享（表格页带选中行跳转 AI 对话时使用）
 
 const menus = [
   { key: 'dashboard', label: '数据面板', icon: Odometer, desc: 'AI 调用量与任务总览' },
   { key: 'chat', label: 'AI 流式对话', icon: ChatDotRound, desc: 'SSE 流式客户端 + 会话管理 / 技能库 / 知识库联动' },
   { key: 'extract', label: 'AI 数据提取', icon: EditPen, desc: '非结构化文本 → 结构化字段 → 人工兜底 → 导出' },
   { key: 'agent', label: 'Agent 执行可视化', icon: Share, desc: '思考 / 工具调用 / 重试链路实时呈现' },
-  { key: 'table', label: '可编辑表格', icon: Grid, desc: 'useTable hooks + 字典双层缓存' },
+  { key: 'table', label: '可编辑表格', icon: Grid, desc: '多条件搜索 / 批量操作 / 导出 + 与 AI 提取、对话联动' },
   { key: 'graph', label: '关系图谱', icon: Connection, desc: 'AntV G6 力导向布局 + 快照导出' }
 ]
 </script>

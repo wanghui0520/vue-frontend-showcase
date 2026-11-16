@@ -113,6 +113,7 @@
       <footer class="input-area">
         <div class="input-bar">
           <el-input
+            ref="inputRef"
             v-model="input"
             type="textarea"
             :autosize="{ minRows: 3, maxRows: 6 }"
@@ -141,9 +142,10 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted, watch } from 'vue'
 import { marked } from 'marked'
 import { chatStream } from '../utils/aiApi'
+import { pendingPrompt } from '../store/bridge'
 import {
   Plus, Check, ChatDotRound, Delete, Cpu, MagicStick, VideoPlay, WarningFilled
 } from '@element-plus/icons-vue'
@@ -183,6 +185,7 @@ const STORAGE_KEY = 'showcase_chat_sessions_v1'
 /* ═══════════════ 状态 ═══════════════ */
 
 const boxRef = ref(null)
+const inputRef = ref(null)
 const input = ref('')
 const replying = ref(false)
 const model = ref('standard')
@@ -395,6 +398,19 @@ onMounted(() => {
   loadSessions()
   scrollToBottom()
 })
+
+/**
+ * 接收来自业务页的带上下文提问（订单管理等页面「带选中数据问 AI」）
+ * 对应真实项目的「路由 → Prompt 前缀」机制：上下文由业务页拼好，这里直接注入输入框
+ */
+watch(pendingPrompt, (text) => {
+  if (!text) return
+  if (replying.value) controller?.abort?.()
+  if (currentSession.value?.messages.length) newSession()  // 避免上下文串到旧会话
+  input.value = text
+  pendingPrompt.value = ''
+  nextTick(() => inputRef.value?.focus?.())
+}, { immediate: true })
 </script>
 
 <style scoped>

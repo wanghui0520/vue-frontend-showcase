@@ -32,7 +32,12 @@
       <div class="card">
         <div class="result-head">
           <h3 class="card-title">② 结构化结果（可编辑）</h3>
-          <el-button size="small" :disabled="!rows.length" @click="exportCsv">导出 CSV</el-button>
+          <div class="head-actions">
+            <el-button size="small" type="success" plain :disabled="!rows.length" @click="importToOrders">
+              导入订单表格
+            </el-button>
+            <el-button size="small" :disabled="!rows.length" @click="exportCsv">导出 CSV</el-button>
+          </div>
         </div>
 
         <el-table v-if="rows.length" :data="rows" size="default" :header-cell-style="headerStyle" max-height="420">
@@ -85,6 +90,8 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { createStreamClient } from '../utils/requestStream'
+import { addOrder } from '../store/orders'
+import { goTo } from '../store/bridge'
 
 const { streamRequest } = createStreamClient({ timeout: 120000 })
 
@@ -159,6 +166,23 @@ function save(row) {
   editKey.value = null
 }
 
+/** 把抽取结果映射成业务订单，写入共享数据层（可编辑表格页可见，来源标记 AI） */
+function importToOrders() {
+  const get = (name) => rows.value.find((r) => r.name === name)?.value || ''
+  const amount = Number(String(get('合同金额')).replace(/[^\d.]/g, '')) || 0
+  addOrder({
+    orderNo: get('合同编号') || `AI-${Date.now()}`,
+    customer: get('甲方') || '（未识别甲方）',
+    status: '0',
+    level: '1',
+    amount,
+    createdAt: get('签订日期') || undefined,
+    source: 'ai'
+  })
+  ElMessage.success('已导入订单表格（来源标记为 AI 提取）')
+  setTimeout(() => goTo('table'), 600)
+}
+
 function exportCsv() {
   const head = '字段,抽取值,置信度\n'
   const body = rows.value.map((r) => `${r.name},"${String(r.value).replace(/"/g, '""')}",${r.confidence}`).join('\n')
@@ -183,6 +207,7 @@ function exportCsv() {
 .hint p { margin: 0; font-size: 12px; line-height: 1.7; }
 
 .result-head { display: flex; align-items: center; justify-content: space-between; }
+.head-actions { display: flex; align-items: center; gap: 8px; }
 
 .value { cursor: pointer; padding: 2px 4px; border-radius: 4px; }
 .value:hover { background: var(--brand-weak); }

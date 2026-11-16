@@ -59,7 +59,10 @@ body {
 }
 
 /* ---------- 通用卡片与页面结构 ---------- */
-.page { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+/* 流式布局：小屏常规内边距；≥1440px 逐步加大，≥1920px 几乎占满内容区 */
+.page { padding: 20px 24px; max-width: 1440px; margin: 0 auto; }
+@media (min-width: 1440px) { .page { max-width: 1600px; padding: 22px 32px; } }
+@media (min-width: 1920px) { .page { max-width: none; padding: 24px 36px; } }
 
 .page-title { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
 

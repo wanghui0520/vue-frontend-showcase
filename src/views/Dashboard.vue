@@ -149,6 +149,15 @@ onBeforeUnmount(() => {
 @media (max-width: 900px) { .chart-row { grid-template-columns: 1fr; } }
 
 .chart { height: 280px; }
+/* 大屏适配：图表更高、间距更宽，避免内容被拉伸后显得空 */
+@media (min-width: 1440px) {
+  .chart { height: 320px; }
+  .chart-row { gap: 18px; }
+}
+@media (min-width: 1920px) {
+  .chart { height: 360px; }
+  .chart-row { gap: 20px; }
+}
 
 .status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
 .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }

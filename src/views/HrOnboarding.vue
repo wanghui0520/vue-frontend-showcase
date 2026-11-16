@@ -1,9 +1,13 @@
 <template>
   <div class="page">
-    <p class="page-desc">
-      复刻真实 HR 无纸化系统的<b>入职审批链路</b>（Offer → 合同与登记表 → 背景体检 → 入职办理，共 4 阶段 12 节点），
-      每个节点有责任人、SLA 与材料清单；<b>AI 材料核对</b>在人工审批前先做一遍交叉校验，把差异项摆在审批人面前。
-    </p>
+    <!-- 顶部：说明 + Offer 录入入口 -->
+    <div class="page-head">
+      <p class="page-desc">
+        复刻真实 HR 无纸化系统的<b>入职审批链路</b>（Offer → 合同与登记表 → 背景体检 → 入职办理，共 4 阶段 12 节点），
+        每个节点有责任人、SLA 与材料清单；<b>AI 材料核对</b>在人工审批前先做一遍交叉校验，把差异项摆在审批人面前。
+      </p>
+      <el-button type="primary" class="entry-btn" @click="openOfferForm">＋ Offer 录入</el-button>
+    </div>
 
     <!-- 概览 -->
     <div class="stat-grid">
@@ -233,18 +237,86 @@
         </div>
       </section>
     </div>
+
+    <!-- Offer 录入弹窗 -->
+    <el-dialog v-model="formVisible" title="Offer 录入 · 发起入职流程" width="680px" destroy-on-close>
+      <el-alert
+        type="info" :closable="false" class="form-alert"
+        title="录入完成后，候选人进入「Offer 录入」节点，按流程流转：Offer 审批 → Offer 签署 → 合同与登记表 → 背景体检 → 入职办理"
+      />
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="92px" label-position="left">
+        <div class="form-grid">
+          <el-form-item label="姓名" prop="name">
+            <el-input v-model="form.name" placeholder="候选人姓名" />
+          </el-form-item>
+          <el-form-item label="性别">
+            <el-select v-model="form.gender" style="width: 100%">
+              <el-option label="男" value="男" />
+              <el-option label="女" value="女" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="应聘岗位" prop="position">
+            <el-input v-model="form.position" placeholder="如：高级前端工程师" />
+          </el-form-item>
+          <el-form-item label="所属部门">
+            <el-input v-model="form.dept" placeholder="如：数字化中心 · 前端组" />
+          </el-form-item>
+          <el-form-item label="手机号" prop="phone">
+            <el-input v-model="form.phone" placeholder="11 位手机号" maxlength="11" />
+          </el-form-item>
+          <el-form-item label="入职日期">
+            <el-date-picker
+              v-model="form.entryDate" type="date" value-format="YYYY-MM-DD"
+              placeholder="选择预计入职日期" style="width: 100%"
+            />
+          </el-form-item>
+          <el-form-item label="劳动关系主体">
+            <el-select v-model="form.entity" style="width: 100%">
+              <el-option label="辽宁金华泽科技有限公司" value="辽宁金华泽科技有限公司" />
+              <el-option label="沈阳德风新征程科技有限公司" value="沈阳德风新征程科技有限公司" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="职级">
+            <el-select v-model="form.level" style="width: 100%">
+              <el-option v-for="lv in ['P4', 'P5', 'P6', 'P7', 'P8']" :key="lv" :label="lv" :value="lv" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="基本月薪" prop="base">
+            <el-input-number v-model="form.base" :min="1000" :max="100000" :step="1000" :controls="false" style="width: 100%" placeholder="¥" />
+          </el-form-item>
+          <el-form-item label="薪资月数">
+            <el-input-number v-model="form.months" :min="12" :max="16" :controls="false" style="width: 100%" />
+          </el-form-item>
+          <el-form-item label="试用期">
+            <el-select v-model="form.probation" style="width: 100%">
+              <el-option v-for="p in ['1 个月', '2 个月', '3 个月', '6 个月']" :key="p" :label="p" :value="p" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="年龄">
+            <el-input-number v-model="form.age" :min="18" :max="60" :controls="false" style="width: 100%" />
+          </el-form-item>
+        </div>
+        <el-form-item label="备注说明">
+          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="如：通过三轮技术面 + 交叉面，薪资在带宽内" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="formVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitOffer">提交并进入流程</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { marked } from 'marked'
 import { createStreamClient } from '../utils/requestStream'
 import { goToChatWithPrompt } from '../store/bridge'
 import {
   FLOW_STAGES, TOTAL_NODES, candidates, nodeByKey, nodeIdx,
-  materialsOf, approve, reject, toggleMaterial, resetHr
+  materialsOf, approve, reject, toggleMaterial, resetHr, addCandidate
 } from '../store/hr'
 
 const { streamRequest } = createStreamClient({ timeout: 120000 })
@@ -410,6 +482,43 @@ async function restore() {
     ElMessage.success('已恢复演示数据')
   } catch (e) { /* 取消 */ }
 }
+
+/* ---------- Offer 录入 ---------- */
+const formVisible = ref(false)
+const formRef = ref(null)
+const defaultForm = () => ({
+  name: '', gender: '男', age: 26, position: '', dept: '',
+  phone: '', email: '', entity: '辽宁金华泽科技有限公司',
+  entryDate: '', level: 'P5', base: null, months: 13,
+  probation: '3 个月', remark: ''
+})
+const form = reactive(defaultForm())
+const rules = {
+  name: [{ required: true, message: '请填写候选人姓名', trigger: 'blur' }],
+  position: [{ required: true, message: '请填写应聘岗位', trigger: 'blur' }],
+  phone: [
+    { required: true, message: '请填写手机号', trigger: 'blur' },
+    { pattern: /^1\d{10}$/, message: '手机号格式不正确', trigger: 'blur' }
+  ],
+  base: [{ required: true, message: '请填写基本月薪', trigger: 'blur' }]
+}
+
+function openOfferForm() {
+  Object.assign(form, defaultForm())
+  formVisible.value = true
+}
+
+async function submitOffer() {
+  try {
+    await formRef.value.validate()
+  } catch (e) { return }
+  const cand = addCandidate({ ...form })
+  formVisible.value = false
+  currentId.value = cand.id
+  statusFilter.value = 'all'
+  kw.value = ''
+  ElMessage.success(`已创建候选人 ${cand.name}（${cand.id}），流程从「Offer 录入」开始`)
+}
 </script>
 
 <style scoped>
@@ -418,6 +527,14 @@ async function restore() {
 .muted { color: var(--text-3); font-size: 12px; }
 
 /* ---------- 布局 ---------- */
+.page-head { display: flex; align-items: flex-start; gap: 16px; }
+.page-head .page-desc { flex: 1; }
+.entry-btn { flex-shrink: 0; }
+
+.form-alert { margin-bottom: 14px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
 .hr-layout { display: grid; grid-template-columns: 268px 1fr; gap: 14px; margin-top: 14px; align-items: start; }
 @media (max-width: 1100px) { .hr-layout { grid-template-columns: 1fr; } }
 

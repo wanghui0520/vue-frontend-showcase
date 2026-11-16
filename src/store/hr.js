@@ -205,6 +205,44 @@ export function reject(c, reason) {
   persist()
 }
 
+/** 新增候选人：Offer 录入是整条流程的起点 */
+export function addCandidate(form) {
+  // 工号自增：取现有最大编号 + 1
+  const maxSeq = candidates.value.reduce((m, c) => {
+    const n = parseInt(String(c.id).split('-').pop(), 10)
+    return Number.isFinite(n) ? Math.max(m, n) : m
+  }, 400)
+  const id = `C-2026-${String(maxSeq + 1).padStart(4, '0')}`
+
+  const cand = {
+    id,
+    name: form.name,
+    gender: form.gender || '男',
+    age: form.age || 26,
+    position: form.position,
+    dept: form.dept || '待分配',
+    entity: form.entity,
+    entryDate: form.entryDate || '—',
+    phone: form.phone,
+    email: form.email || '',
+    status: 'running',
+    currentNode: 'offerEntry',
+    offer: {
+      level: form.level || 'P5',
+      base: Number(form.base) || 0,
+      months: Number(form.months) || 13,
+      probation: form.probation || '3 个月'
+    },
+    checked: [],
+    timeline: [
+      { node: 'offerEntry', action: '提交', user: '招聘专员 张蕾', time: now(), comment: form.remark || 'Offer 信息录入，待用人部门审批' }
+    ]
+  }
+  candidates.value = [cand, ...candidates.value]
+  persist()
+  return cand
+}
+
 /** 勾选 / 取消勾选材料 */
 export function toggleMaterial(c, name) {
   const set = new Set(c.checked || [])
